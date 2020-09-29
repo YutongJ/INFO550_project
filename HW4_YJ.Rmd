@@ -1,0 +1,209 @@
+---
+title: "Homework 3"
+author: "Yutong Jin"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+geometry: margin=1.5cm
+output: 
+  bookdown::pdf_document2:
+    highlights: "pygments"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F,message=FALSE,warning=FALSE)
+```
+
+```{r}
+library(table1)
+library(arsenal)
+library(survival)
+library(survMisc)
+library(KMsurv)
+library(MASS)
+
+# The path used for reading and writing in this exam
+dir <- "/Users/firmiana/Firmiana/Coursework/INFO550/HW/HW2/"
+
+### infile the dataset
+dat0 <- read.csv(paste0(dir,"Dataset_PTSD.csv"),stringsAsFactors = F)
+# summary(dat)
+
+### remove twins with missing data
+dat <- dat0[-which(dat0$Date %in% dat0[c(16,121),"Date"]),]
+
+# identifying the obesity status based on patients BMI
+BMI_grp <- rep(0, length(dat$BMI))
+BMI_grp[which(dat$BMI>=30)] <- 1
+
+dat <- data.frame(dat[,1:3],BMI_grp,dat[,4:ncol(dat)])
+rm(BMI_grp)
+
+# Factor the basic variables that we're interested in (label used in descriptive table)
+label(dat$Age) <- "Age"
+units(dat$Age)   <- "Years"
+
+labels(dat$BMI) <- "BMI"
+units(dat$BMI)   <- "kg/m2"
+
+dat$BMI_grp <- factor(dat$BMI_grp,levels = c(0,1), labels = c("No", "Yes"))
+labels(dat$BMI_grp) <- "Obesity Status"
+
+dat$HTN <- factor(dat$HTN,levels = c(0,1), labels = c("No", "Yes"))
+label(dat$HTN) <- "Hypertension History"
+
+dat$HC <- factor(dat$HC,levels = c(0,1), labels = c("No", "Yes"))
+label(dat$HC) <- "High Blood Cholesterol History"
+
+dat$DM <- factor(dat$DM,levels = c(0,1), labels = c("No", "Yes"))
+label(dat$DM) <- "Diabetes History"
+
+dat$Marital <- factor(dat$Marital,levels = c(1,2,3,4,5), 
+                      labels = c("Married","Widowed","Divorced","Separated","Never Married"))
+label(dat$Marital) <- "Marital Status"
+
+dat$Employ <- factor(dat$Employ,levels = c(1,2,3,4,5), 
+                     labels = c("Employed(Full-time)","Employed(Part-time)",
+                                "Unemployed","Unable to Work due to Disability",
+                                "Retired"))
+label(dat$Employ) <- "Employment Status"
+
+dat$Education <- factor(dat$Education,levels = c(0,1,2,3,4), 
+                        labels = c("Less than High School","High School",
+                                   "Some College or Associate","College Degree",
+                                   "Graduate Education/Degree"))
+label(dat$Education) <- "Education"
+
+
+dat$PTSD <- factor(dat$PTSD,levels = c(0,1),labels = c("No", "Yes"))
+label(dat$PTSD) <- "PTSD"
+
+
+
+### dataset for research question 
+OREM <- dat$REML
+censor <- rep(1, length(dat$REML))
+OREM[which(is.na(dat$REML))] <- (dat$TST+dat$SL)[which(is.na(dat$REML))]
+censor[which(is.na(dat$REML))] <- 0
+
+dat3 <- data.frame(dat,OREM,censor)
+rm(OREM,censor)
+label(dat3$OREM) <- "Occurrence of REM Sleep"
+
+dat3 <- dat3[!duplicated(dat3$Date),]
+# summary(dat3)
+```
+
+The study recruited `r nrow(dat0)/2` veteran twin pairs (a total of `r nrow(dat0)` veterans). Each subject had a clinical diagnosis of PTSD. All of them underwent one-night in-lab polysomnography (PSG) for objective sleep monitoring. In this study, different twin pairs came to visit on different dates, so the visit date can be used to identify twin pairs. Additionally, investigators have collected covariates, such as body mass index (BMI), diabetes history, hypertension history, high blood cholesterol history, marital status, employment status, and education levels, which were considered to be potentially important in the investigation of the relationship between PTSD and sleep architecture and disturbance. In particular, the investigators believed that being obese may modify the relationship between PTSD and sleep architecture/sleep disturbance. 
+
+The marginal association between time-to-event and each covariate was summarized in Table \@ref(tab:summary-table). Except for predetermined confounding effects of BMI/ Obesity status, diabetes history (DM) and hypertension history (HTN), no other confounders showed marginal survival differences in univariate analysis. The marginal Kaplan-Meier plots (Figure \@ref(fig:km-plot)) also justified this phenomenon. 
+
+```{r}
+fit = coxph(Surv(OREM, censor) ~ PTSD + BMI_grp + PTSD:BMI_grp + HTN + DM, data=dat3)
+
+# hypothesis test for Obesity status stratification
+walds <-  function(est,var,C){
+  df = nrow(C)
+  Ccov = C%*%var%*%t(C)
+  X.w = t(C%*%est)%*%ginv(Ccov)%*%(C%*%est) #test.stat
+  pval = 1-pchisq(X.w,df)
+  es = (C%*%est)
+  low = (C%*%est)+sqrt(Ccov)%*%qnorm(0.025)
+  up  = (C%*%est)+sqrt(Ccov)%*%qnorm(0.975)
+  res = c(exp(es),exp(low),exp(up),pval)
+  names(res) = c("HR","HRlower","HRuppper","P-value")
+  return(res)
+}
+
+# Non-Obesity: PTSD v.s. non-PTSD
+Cs <- rbind(c(1,0,0,0,0))
+w1 <- walds(est=fit$coefficients,var=fit$var,C=Cs)
+w1 <- round(w1, 3)
+# Obesity:  PTSD v.s. non-PTSD
+Cs <- rbind(c(1,0,0,0,1))
+w2 <- walds(est=fit$coefficients,var=fit$var,C=Cs)
+w2 <- round(w2, 3)
+# Difference between associations
+Cs <- rbind(c(0,0,0,0,1))
+w3 <- walds(est=fit$coefficients,var=fit$var,C=Cs)
+w3 <- round(w3, 3)
+```
+
+The final stratified Obesity-included Cox-PH model was: (Table \@ref(tab:fit-table))
+$$h(t|\mathbf{X})=h_0(t)exp{-0.215\times PTSD-0.176\times Obese+1.521\times PTSD\times Obese-0.039\times HTN+0.448\times DM}$$
+
+Adjusting for hypertension and diabetes history, among non-obese patients, the relative risk of having REM sleep of PTSD patients compared to non-PTSD patients was `r w1[1]` (95% CI: `r w1[2]`–`r w1[3]`). Adjusting for hypertension and diabetes history, among obese patients, the relative risk of having REM sleep of PTSD patients compared to non-PTSD patients was `r w2[1]` (95% CI: `r w2[2]`–`r w2[3]`). We referred to them as the confounder-adjusted association between PTSD and time to the occurrence of REM sleep stratified by obesity status. The difference between two association was statistically significant (p=`r w3[4]`). It implied that among non-obese group, PTSD patients were not significantly associated with shorter time to the occurrence of REM sleep. However, among obese group, PTSD patients were more likely to have shorter time to the occurrence of REM sleep. The association in obese patients was significantly different from the association in non-obese patients.
+
+
+\newpage
+```{r summary-table}
+# Cox-PH for numerical covariates
+tab = NULL
+fit = coxph(Surv(OREM, censor) ~ BMI_grp, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, c(sums$conf.int[c(1,3,4)],sums$sctest[3]))
+fit = coxph(Surv(OREM, censor) ~ HTN, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, c(sums$conf.int[c(1,3,4)],sums$sctest[3]))
+fit = coxph(Surv(OREM, censor) ~ HC, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, c(sums$conf.int[c(1,3,4)],sums$sctest[3]))
+fit = coxph(Surv(OREM, censor) ~ DM, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, c(sums$conf.int[c(1,3,4)],sums$sctest[3]))
+fit = coxph(Surv(OREM, censor) ~ PTSD, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, c(sums$conf.int[c(1,3,4)],sums$sctest[3]))
+
+fit = coxph(Surv(OREM, censor) ~ Marital, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, cbind(sums$conf.int[,c(1,3,4)],sums$sctest[3]))
+fit = coxph(Surv(OREM, censor) ~ Employ, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, cbind(sums$conf.int[,c(1,3,4)],sums$sctest[3]))
+fit = coxph(Surv(OREM, censor) ~ Education, data = dat3,ties = "breslow")
+sums = summary(fit)
+tab = rbind(tab, cbind(sums$conf.int[,c(1,3,4)],sums$sctest[3]))
+tab <- round(tab,3)
+Covariates = c("Obesity Status","Hypertension History","High Blood Cholesterol", "Diabetes","PTSD", 
+               "Marital Status","(ref) Married", rep(NA,(length(table(dat$Marital))-3)), 
+               "Employment Status", "(ref) Employed-full time", rep(NA,(length(table(dat$Employ))-3)),
+               "Education", "(ref) Less than High School", rep(NA,(length(table(dat$Education))-3)))
+Comparison = c(rep("Yes vs. No",5), 
+               names(table(dat$Marital))[-1],
+               names(table(dat$Employ))[-1],
+               names(table(dat$Education))[-1])
+tab <- cbind(Covariates, Comparison, tab)
+rownames(tab)=NULL
+colnames(tab) = c("Covariates", "Comparison", "Relative Risk", "Lower .95", "Upper .95", "p-value")
+
+options(knitr.kable.NA = '')
+knitr::kable(tab,booktabs = T,format = "latex", 
+             caption = "Summary Statistics by Cox-PH Model with Respect to Categorical Covariate")
+```
+
+```{r fit-table}
+# final model with Obesity status
+fit = coxph(Surv(OREM, censor) ~ PTSD + BMI_grp + PTSD:BMI_grp + HTN + DM, data=dat3)
+sum.fit <- summary(fit)
+tab <- sum.fit$coefficients[,-2]
+colnames(tab) <- c("Estimate","Std.Err","Z-value","p-value")
+rownames(tab) <- c("PTSD", "Obesity","HTN","DM","PTSD*Obesity")
+
+options(knitr.kable.NA = '')
+knitr::kable(tab,booktabs = T,format = "latex", 
+             caption = "Model Fitting Results for Obesity-included Cox-PH Regression Model")
+```
+
+
+```{r km-plot, fig.width = 8, fig.height = 5, fig.align='center', fig.cap="Kaplan-Meier Plot"}
+fit = survfit(Surv(OREM, censor) ~ PTSD + BMI_grp, data = dat3, type="kaplan-meier")
+plot(fit,col=1:4,lwd=2, 
+     xlab="Minutes to the Occurrence of REM Sleep", ylab="REM Sleep Achieving Probability")
+legend("topright", col=1:4,lwd=2,bty = "n",cex=0.8,
+       legend=c("Non-PTSD, Non-Obesity","Non-PTSD, Obesity",
+                "PTSD, Non-Obesity","PTSD, Obesity"))
+```
+
+
+
+
+
