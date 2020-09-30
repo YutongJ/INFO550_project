@@ -1,7 +1,7 @@
 ---
-title: "Homework 3"
+title: "INFO550 Report"
 author: "Yutong Jin"
-date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+# date: "`r format(Sys.Date(), '%Y-%m-%d')`"
 geometry: margin=1.5cm
 output: 
   bookdown::pdf_document2:
@@ -21,10 +21,10 @@ library(KMsurv)
 library(MASS)
 
 # The path used for reading and writing in this exam
-dir <- "/Users/firmiana/Firmiana/Coursework/INFO550/HW/HW2/"
+dir <- getwd()
 
 ### infile the dataset
-dat0 <- read.csv(paste0(dir,"Dataset_PTSD.csv"),stringsAsFactors = F)
+dat0 <- read.csv(paste0(dir,"/Dataset_PTSD.csv"),stringsAsFactors = F)
 # summary(dat)
 
 ### remove twins with missing data
