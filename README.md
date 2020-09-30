@@ -23,7 +23,16 @@ for(p in pkgs){
 
 ## Execute the analysis
 
-To execute the analysis, you should make sure you have successfully download the dataset `Dataset_PTSD.csv` and the Rmarkdown file `HW4_YJ.Rmd`. From the project folder you can run 
+To execute the analysis, you should make sure you have successfully download the dataset `Dataset_PTSD.csv` and the Rmarkdown file `HW4_YJ.Rmd`. 
+
+You should then make sure you have successfully set your current working directory using the folloing code:
+
+``` bash
+cd /Users/username/folder_name_where_you_save_data_and_Rmd
+```
+
+
+From the project folder you can run 
 
 ``` bash
 Rscript -e "rmarkdown::render('HW4_YJ.Rmd')"
