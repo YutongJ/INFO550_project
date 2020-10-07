@@ -13,7 +13,7 @@ To analyze the data you will need to install some `R` packages. The required pac
 
 ``` r
 installed_pkgs <- row.names(installed.packages())
-pkgs <- c("table1", "arsenal", "survival", "survMisc", "KMsurv", "MASS")
+pkgs <- c("table1", "arsenal", "survival", "survMisc", "KMsurv", "MASS", "bookdown")
 for(p in pkgs){
 	if(!(p %in% install_pkgs)){
 		install.packages(p)
