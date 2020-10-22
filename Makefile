@@ -17,23 +17,29 @@ Tables/table2.csv: R/table2.R Dataset/clean_data.rda
 Dataset/clean_data.rda: R/Data_clean.R Dataset/Dataset_PTSD.csv
 	chmod +x R/Data_clean.R && R/Data_clean.R
 
-
+## phony options:
 .PHONY: help clean figures tables
-## package install
+## 	make install: install required packages
 install: 
 	chmod +x R/pkg_install.R && R/pkg_install.R
 
+## 	make report: generate final html report
 report: Report/report_YJ.html
 
+## 	make figures: generate all figures in the report
 figures: Figures/figure1.png
 
+## 	make tables: generate all tables in the report
 tables: Tables/table1.csv Tables/table2.csv
 
+## 	make dataclean: create cleaned dataset
 dataclean: Dataset/clean_data.rda
 
+# 	make help: check help
 help: Makefile
 	@sed -n 's/^##//p' $<
 
-clean:
-	rm Figures/figure1.png Tables/table1.csv Tables/table2.csv Report/report_YJ.html
+## 	make cleanall: clean all output files
+cleanall:
+	rm Dataset/clean_data.rda Figures/figure1.png Tables/table1.csv Tables/table2.csv Report/report_YJ.html
 
