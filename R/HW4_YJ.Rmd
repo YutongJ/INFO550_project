@@ -4,8 +4,7 @@ author: "Yutong Jin"
 # date: "`r format(Sys.Date(), '%Y-%m-%d')`"
 geometry: margin=1.5cm
 output: 
-  bookdown::pdf_document2:
-    highlights: "pygments"
+  html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -94,7 +93,7 @@ dat3 <- dat3[!duplicated(dat3$Date),]
 
 The study recruited `r nrow(dat0)/2` veteran twin pairs (a total of `r nrow(dat0)` veterans). Each subject had a clinical diagnosis of PTSD. All of them underwent one-night in-lab polysomnography (PSG) for objective sleep monitoring. In this study, different twin pairs came to visit on different dates, so the visit date can be used to identify twin pairs. Additionally, investigators have collected covariates, such as body mass index (BMI), diabetes history, hypertension history, high blood cholesterol history, marital status, employment status, and education levels, which were considered to be potentially important in the investigation of the relationship between PTSD and sleep architecture and disturbance. In particular, the investigators believed that being obese may modify the relationship between PTSD and sleep architecture/sleep disturbance. 
 
-The marginal association between time-to-event and each covariate was summarized in Table \@ref(tab:summary-table). Except for predetermined confounding effects of BMI/ Obesity status, diabetes history (DM) and hypertension history (HTN), no other confounders showed marginal survival differences in univariate analysis. The marginal Kaplan-Meier plots (Figure \@ref(fig:km-plot)) also justified this phenomenon. 
+The marginal association between time-to-event and each covariate was summarized in Table 1). Except for predetermined confounding effects of BMI/ Obesity status, diabetes history (DM) and hypertension history (HTN), no other confounders showed marginal survival differences in univariate analysis. The marginal Kaplan-Meier plots (Figure 1) also justified this phenomenon. 
 
 ```{r}
 fit = coxph(Surv(OREM, censor) ~ PTSD + BMI_grp + PTSD:BMI_grp + HTN + DM, data=dat3)
@@ -127,7 +126,7 @@ w3 <- walds(est=fit$coefficients,var=fit$var,C=Cs)
 w3 <- round(w3, 3)
 ```
 
-The final stratified Obesity-included Cox-PH model was: (Table \@ref(tab:fit-table))
+The final stratified Obesity-included Cox-PH model was: (Table 2)
 $$h(t|\mathbf{X})=h_0(t)exp{-0.215\times PTSD-0.176\times Obese+1.521\times PTSD\times Obese-0.039\times HTN+0.448\times DM}$$
 
 Adjusting for hypertension and diabetes history, among non-obese patients, the relative risk of having REM sleep of PTSD patients compared to non-PTSD patients was `r w1[1]` (95% CI: `r w1[2]`–`r w1[3]`). Adjusting for hypertension and diabetes history, among obese patients, the relative risk of having REM sleep of PTSD patients compared to non-PTSD patients was `r w2[1]` (95% CI: `r w2[2]`–`r w2[3]`). We referred to them as the confounder-adjusted association between PTSD and time to the occurrence of REM sleep stratified by obesity status. The difference between two association was statistically significant (p=`r w3[4]`). It implied that among non-obese group, PTSD patients were not significantly associated with shorter time to the occurrence of REM sleep. However, among obese group, PTSD patients were more likely to have shorter time to the occurrence of REM sleep. The association in obese patients was significantly different from the association in non-obese patients.
