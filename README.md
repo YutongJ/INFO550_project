@@ -102,5 +102,5 @@ docker run -v /Your/local/path/to/the/new/created/Report:/project/Report -it yut
 
 ## Summary
 
-This will create a file called `report_YJ.pdf` in your `Report/` directory. The report builds a table with descriptive statistics, makes a Kaplan-Meier plot stratified by PTSD and obesity status, and fits a Cox-PH regression model to investigate the effect of PTSD on time to occurrence of REM sleep and how is it modified by obesity status. 
+This will create a file called `report_YJ.html` in your `Report/` directory. The report builds a table with descriptive statistics, makes a Kaplan-Meier plot stratified by PTSD and obesity status, and fits a Cox-PH regression model to investigate the effect of PTSD on time to occurrence of REM sleep and how is it modified by obesity status. 
 
