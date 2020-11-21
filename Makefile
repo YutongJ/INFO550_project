@@ -18,7 +18,7 @@ Dataset/clean_data.rda: R/Data_clean.R Dataset/Dataset_PTSD.csv
 	chmod +x R/Data_clean.R && R/Data_clean.R
 
 ## phony options:
-.PHONY: help clean figures tables
+.PHONY: install report figures tables dataclean help cleanall docker
 ## 	make install: install required packages
 install: 
 	chmod +x R/pkg_install.R && R/pkg_install.R
@@ -43,3 +43,5 @@ help: Makefile
 cleanall:
 	rm Dataset/clean_data.rda Figures/figure1.png Tables/table1.csv Tables/table2.csv Report/report_YJ.html
 
+docker: Dockerfile
+	docker build -t info550_prj .
