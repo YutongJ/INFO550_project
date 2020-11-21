@@ -51,5 +51,56 @@ make help
 ```
 
 
+## How to build a local docker
+ 
+To execute the analysis in a docker container, you should also first make sure you have successfully download all files in `INFO550_project`. 
+
+Then please make sure you have successfully set your current working directory using the following code:
+
+``` bash
+cd folder_name_where_you_save_all_files
+```
+
+Run the docker on your local computer first, and then you can run the following code to build the container.
+
+``` bash
+docker build -t info550_prj .
+```
+
+After building it, you can run the following code to run the container and mount the `Report/` directory to your local computer which contains the report generated in your Docker coontainer. 
+
+``` bash
+docker run -v /Your/local/path/to/Report:/project/Report -it info550_prj
+```
+
+If you want to mount the whole project folders to your local computer you can change the path correspondingly as below:
+
+``` bash
+docker run -v /Your/local/path/to/folder:/project -it info550_prj
+```
+
+You can also build a local docker by yourself using the following code:
+
+``` bash
+make build
+```
+
+## How to retrieve a built Docker image from DockerHub
+
+You can also find one built Docker as the same as above on DockerHub. You can pull my built Docker image using the following code:
+
+``` bash
+docker pull yutongjin/info550_prj:1.0
+```
+
+Then you should create a `Report/` folder on your local computer to save the report, and then use the following code to run the container and mount the `Report/` directory to your local computer.
+
+``` bash
+docker run -v /Your/local/path/to/the/new/created/Report:/project/Report -it yutongjin/info550_prj:1.0
+```
+
+
+## Summary
+
 This will create a file called `report_YJ.pdf` in your `Report/` directory. The report builds a table with descriptive statistics, makes a Kaplan-Meier plot stratified by PTSD and obesity status, and fits a Cox-PH regression model to investigate the effect of PTSD on time to occurrence of REM sleep and how is it modified by obesity status. 
 
